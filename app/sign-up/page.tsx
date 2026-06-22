@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { TopBar } from "@/components/site/top-bar";
 import { Navbar } from "@/components/site/navbar";
@@ -15,7 +16,10 @@ export default function SignUpPage() {
       <TopBar />
       <Navbar />
       <main>
-        <SignUpForm />
+        {/* Suspense boundary for useSearchParams (?next=) in the client form. */}
+        <Suspense fallback={null}>
+          <SignUpForm />
+        </Suspense>
       </main>
       <Footer />
     </>

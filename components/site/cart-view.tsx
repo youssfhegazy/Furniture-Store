@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Minus, Plus, ShoppingBag, X } from "lucide-react";
 
 import { useCart } from "@/lib/cart-context";
+import { useRequireAuth } from "@/lib/use-require-auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 
@@ -13,7 +15,15 @@ const COUPONS: Record<string, number> = { TW015: 0.15, SAVE10: 0.1 };
 
 export function CartView() {
   const { toast } = useToast();
+  const router = useRouter();
+  const requireAuth = useRequireAuth();
   const { items, subtotal, hydrated, setQuantity, removeItem } = useCart();
+
+  // Guests can build a cart, but checkout requires an account.
+  const goToCheckout = () => {
+    if (!requireAuth("Sign in to complete your purchase.", "/cart/checkout")) return;
+    router.push("/cart/checkout");
+  };
   const [couponOpen, setCouponOpen] = useState(false);
   const [couponInput, setCouponInput] = useState("");
   const [coupon, setCoupon] = useState<{ code: string; rate: number } | null>(
@@ -206,8 +216,8 @@ export function CartView() {
             </span>
           </div>
 
-          <Button asChild size="lg" className="mt-5 w-full">
-            <Link href="/cart/checkout">Proceed To Checkout</Link>
+          <Button size="lg" className="mt-5 w-full" onClick={goToCheckout}>
+            Proceed To Checkout
           </Button>
         </div>
       </div>

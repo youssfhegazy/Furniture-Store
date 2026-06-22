@@ -18,6 +18,7 @@ import type { ShopProduct } from "@/lib/data";
 import { productCoupon, productDetail } from "@/lib/data";
 import { useCart } from "@/lib/cart-context";
 import { useFavorites } from "@/lib/favorites-context";
+import { useRequireAuth } from "@/lib/use-require-auth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ export function ProductPurchase({ product }: { product: ShopProduct }) {
   const { toast } = useToast();
   const { addItem } = useCart();
   const { has, toggle } = useFavorites();
+  const requireAuth = useRequireAuth();
   const liked = has(product.name);
   const [qty, setQty] = useState(1);
 
@@ -47,6 +49,7 @@ export function ProductPurchase({ product }: { product: ShopProduct }) {
     router.push("/cart");
   };
   const toggleFavorite = () => {
+    if (!requireAuth("Sign in to save items to your favourites.")) return;
     toggle({
       name: product.name,
       price: product.price,

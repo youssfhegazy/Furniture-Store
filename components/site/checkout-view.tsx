@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, BadgeCheck, Check } from "lucide-react";
 
 import { useCart } from "@/lib/cart-context";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
@@ -133,6 +134,7 @@ function CheckBox({
 export function CheckoutView() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user, hydrated: authHydrated } = useAuth();
   const { items, count, subtotal, hydrated, clear } = useCart();
   const [payment, setPayment] = useState("card");
   const [useShipping, setUseShipping] = useState(true);
@@ -140,7 +142,18 @@ export function CheckoutView() {
 
   const total = subtotal;
 
+  // Checkout is login-only: bounce guests to sign-in, returning here afterwards.
+  useEffect(() => {
+    if (authHydrated && !user) {
+      router.replace("/sign-in?next=/cart/checkout");
+    }
+  }, [authHydrated, user, router]);
+
   const confirm = () => {
+    if (!user) {
+      router.replace("/sign-in?next=/cart/checkout");
+      return;
+    }
     if (!acceptTerms) {
       toast.error("Please accept the Terms & Conditions to continue.");
       return;
@@ -168,6 +181,11 @@ export function CheckoutView() {
     clear();
     router.push("/cart/order-completed");
   };
+
+  // Don't flash the billing form to guests while the redirect above runs.
+  if (!authHydrated || !user) {
+    return <div className="container-x py-24" aria-hidden />;
+  }
 
   return (
     <section className="container-x py-12 lg:py-16">

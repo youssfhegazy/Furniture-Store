@@ -35,7 +35,7 @@ type AuthContextValue = {
   }) => Result;
   signIn: (data: { email: string; password: string }) => Result;
   /** Start the Google OAuth flow (NextAuth). Persists the user in MongoDB. */
-  signInWithGoogle: () => void;
+  signInWithGoogle: (callbackUrl?: string) => void;
   signOut: () => void;
   updateProfile: (data: Partial<Pick<User, "name" | "phone" | "avatar">>) => void;
 };
@@ -141,8 +141,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  const signInWithGoogle = useCallback(() => {
-    void nextAuthSignIn("google", { callbackUrl: "/profile" });
+  const signInWithGoogle = useCallback((callbackUrl = "/profile") => {
+    void nextAuthSignIn("google", { callbackUrl });
   }, []);
 
   const signOut = useCallback(() => {

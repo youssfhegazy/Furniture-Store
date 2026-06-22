@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { TopBar } from "@/components/site/top-bar";
 import { Navbar } from "@/components/site/navbar";
@@ -13,12 +14,12 @@ export const metadata: Metadata = {
   description: "Browse our full collection of modern furniture.",
 };
 
-export default async function ProductsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ category?: string }>;
-}) {
-  const { category } = await searchParams;
+// Prerender this page and refresh the product list hourly (ISR). The `?category`
+// deep-link is read on the client (ProductsBrowser), so the page no longer has to
+// render dynamically / block on a live DB query per request — it loads instantly.
+export const revalidate = 3600;
+
+export default async function ProductsPage() {
   const products = await getProducts();
 
   return (
@@ -27,7 +28,10 @@ export default async function ProductsPage({
       <Navbar />
       <main>
         <PageHero title="Products" />
-        <ProductsBrowser products={products} initialCategory={category} />
+        {/* Suspense boundary required for the client-side useSearchParams in ProductsBrowser. */}
+        <Suspense fallback={null}>
+          <ProductsBrowser products={products} />
+        </Suspense>
         <FeatureBar />
       </main>
       <Footer />

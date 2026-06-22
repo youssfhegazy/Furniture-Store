@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 
 import {
@@ -152,13 +153,9 @@ function buildPageList(current: number, total: number): (number | "…")[] {
 
 /* ---------- Main browser ---------- */
 
-export function ProductsBrowser({
-  products,
-  initialCategory,
-}: {
-  products: ShopProduct[];
-  initialCategory?: string;
-}) {
+export function ProductsBrowser({ products }: { products: ShopProduct[] }) {
+  // Read the ?category deep-link on the client so the page itself stays static.
+  const initialCategory = useSearchParams().get("category") ?? undefined;
   const validCategory =
     initialCategory && filterGroups.categories.includes(initialCategory)
       ? initialCategory

@@ -2,12 +2,22 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+
+/**
+ * Post-auth destination from the `?next=` param (e.g. /sign-in?next=/cart/checkout),
+ * defaulting to /profile. Only same-origin relative paths are allowed, to avoid
+ * open-redirects.
+ */
+function useNextDestination() {
+  const next = useSearchParams().get("next");
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/profile";
+}
 
 const inputCls =
   "w-full rounded-lg border border-ink/15 bg-white px-4 py-3 text-sm text-ink placeholder:text-ink-soft focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30";
@@ -38,11 +48,12 @@ function GoogleIcon() {
 /** Google OAuth button + "or" divider, shared by both auth forms. */
 function GoogleAuth({ label }: { label: string }) {
   const { signInWithGoogle } = useAuth();
+  const next = useNextDestination();
   return (
     <>
       <button
         type="button"
-        onClick={signInWithGoogle}
+        onClick={() => signInWithGoogle(next)}
         className="mt-6 flex w-full items-center justify-center gap-3 rounded-lg border border-ink/15 bg-white px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-muted/50"
       >
         <GoogleIcon />
@@ -89,10 +100,11 @@ export function SignInForm() {
   const router = useRouter();
   const { toast } = useToast();
   const { user, hydrated, signIn } = useAuth();
+  const next = useNextDestination();
 
   useEffect(() => {
-    if (hydrated && user) router.replace("/profile");
-  }, [hydrated, user, router]);
+    if (hydrated && user) router.replace(next);
+  }, [hydrated, user, router, next]);
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -103,7 +115,7 @@ export function SignInForm() {
     });
     if (result.ok) {
       toast.success("Welcome back!", { description: "You're now signed in." });
-      router.push("/profile");
+      router.push(next);
     } else {
       toast.error("Sign in failed", { description: result.error || "Unable to sign in." });
     }
@@ -116,7 +128,10 @@ export function SignInForm() {
       footer={
         <>
           Don&apos;t have an account?{" "}
-          <Link href="/sign-up" className="font-medium text-gold hover:underline">
+          <Link
+            href={`/sign-up${next !== "/profile" ? `?next=${encodeURIComponent(next)}` : ""}`}
+            className="font-medium text-gold hover:underline"
+          >
             Sign up
           </Link>
         </>
@@ -144,10 +159,11 @@ export function SignUpForm() {
   const router = useRouter();
   const { toast } = useToast();
   const { user, hydrated, signUp } = useAuth();
+  const next = useNextDestination();
 
   useEffect(() => {
-    if (hydrated && user) router.replace("/profile");
-  }, [hydrated, user, router]);
+    if (hydrated && user) router.replace(next);
+  }, [hydrated, user, router, next]);
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -168,7 +184,7 @@ export function SignUpForm() {
     });
     if (result.ok) {
       toast.success("Account created", { description: "Welcome to FurniFlex!" });
-      router.push("/profile");
+      router.push(next);
     } else {
       toast.error("Sign up failed", { description: result.error || "Unable to create account." });
     }
@@ -181,7 +197,10 @@ export function SignUpForm() {
       footer={
         <>
           Already have an account?{" "}
-          <Link href="/sign-in" className="font-medium text-gold hover:underline">
+          <Link
+            href={`/sign-in${next !== "/profile" ? `?next=${encodeURIComponent(next)}` : ""}`}
+            className="font-medium text-gold hover:underline"
+          >
             Sign in
           </Link>
         </>
