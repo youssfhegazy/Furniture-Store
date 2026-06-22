@@ -35,7 +35,18 @@ export type ApiCategory = {
   count?: number;
 };
 
+// Demo read-only mode: when on, all non-GET requests are blocked client-side so
+// the shared demo admin can browse but not mutate. Set from AdminShell.
+let readOnly = false;
+export function setAdminReadOnly(value: boolean) {
+  readOnly = value;
+}
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method ?? "GET").toUpperCase();
+  if (readOnly && method !== "GET") {
+    throw new Error("Demo mode: changes are disabled in the live demo.");
+  }
   const res = await fetch(url, {
     headers: { "Content-Type": "application/json" },
     ...init,

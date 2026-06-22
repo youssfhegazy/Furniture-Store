@@ -14,6 +14,8 @@ import {
   useSession,
 } from "next-auth/react";
 
+import { DEMO_ADMIN } from "@/lib/admin";
+
 export type User = {
   name: string;
   email: string;
@@ -36,6 +38,8 @@ type AuthContextValue = {
   signIn: (data: { email: string; password: string }) => Result;
   /** Start the Google OAuth flow (NextAuth). Persists the user in MongoDB. */
   signInWithGoogle: (callbackUrl?: string) => void;
+  /** Sign in as the shared read-only demo admin (portfolio dashboard preview). */
+  enterDemoAdmin: () => void;
   signOut: () => void;
   updateProfile: (data: Partial<Pick<User, "name" | "phone" | "avatar">>) => void;
 };
@@ -145,6 +149,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void nextAuthSignIn("google", { callbackUrl });
   }, []);
 
+  const enterDemoAdmin = useCallback(() => {
+    const demo: StoredUser = {
+      name: DEMO_ADMIN.name,
+      email: DEMO_ADMIN.email,
+      password: "",
+      phone: "",
+      avatar: "",
+    };
+    const users = readUsers();
+    if (!users.some((u) => u.email === demo.email)) {
+      writeUsers([...users, demo]);
+    }
+    localStorage.setItem(CURRENT_KEY, demo.email);
+    setLocalUser(strip(demo));
+  }, []);
+
   const signOut = useCallback(() => {
     if (oauthUser) {
       void nextAuthSignOut({ callbackUrl: "/" });
@@ -183,8 +203,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ user, hydrated, signUp, signIn, signInWithGoogle, signOut, updateProfile }),
-    [user, hydrated, signUp, signIn, signInWithGoogle, signOut, updateProfile]
+    () => ({ user, hydrated, signUp, signIn, signInWithGoogle, enterDemoAdmin, signOut, updateProfile }),
+    [user, hydrated, signUp, signIn, signInWithGoogle, enterDemoAdmin, signOut, updateProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

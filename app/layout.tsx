@@ -27,7 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${poppins.variable} h-full`}>
-      <body className="min-h-full bg-white text-ink antialiased">
+      {/* suppressHydrationWarning: browser extensions (e.g. ColorZilla's
+          cz-shortcut-listen) mutate <body> before hydration — this only
+          ignores attribute diffs on <body> itself, not its children. */}
+      <body className="min-h-full bg-white text-ink antialiased" suppressHydrationWarning>
         <ToastProvider>
           <AuthSessionProvider>
             <AuthProvider>

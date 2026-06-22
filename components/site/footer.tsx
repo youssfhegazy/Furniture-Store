@@ -71,7 +71,13 @@ export function Footer() {
       <div className="bg-teal text-white">
         <div className="container-x flex flex-col items-center justify-between gap-4 py-5 text-sm sm:flex-row">
           <p className="text-white/80">
-            Copyright@{new Date().getFullYear()} FurniFlex. All Rights Reserved.
+            Copyright@{new Date().getFullYear()} FurniFlex. All Rights Reserved.{" "}
+            <Link
+              href="/admin"
+              className="font-medium text-white underline-offset-2 hover:text-gold hover:underline"
+            >
+              Dashboard Demo
+            </Link>
           </p>
           <div className="flex gap-3">
             {socials.map(({ label, Icon, href }) => (

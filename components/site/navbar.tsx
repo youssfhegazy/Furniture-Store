@@ -10,6 +10,7 @@ import { navLinks } from "@/lib/data";
 import { useCart } from "@/lib/cart-context";
 import { useFavorites } from "@/lib/favorites-context";
 import { useAuth } from "@/lib/auth-context";
+import { isAdminEmail } from "@/lib/admin";
 import { SearchOverlay } from "@/components/site/search-overlay";
 import { cn } from "@/lib/utils";
 
@@ -138,14 +139,16 @@ function AccountMenu() {
             >
               <User className="h-4 w-4 text-stone-400" /> My Profile
             </Link>
-            <Link
-              href="/admin"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-stone-700 hover:bg-stone-50"
-              role="menuitem"
-            >
-              <LayoutDashboard className="h-4 w-4 text-stone-400" /> Dashboard
-            </Link>
+            {isAdminEmail(user.email) && (
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-stone-700 hover:bg-stone-50"
+                role="menuitem"
+              >
+                <LayoutDashboard className="h-4 w-4 text-stone-400" /> Dashboard
+              </Link>
+            )}
             <div className="my-1 h-px bg-stone-100" />
             <button
               onClick={() => {
