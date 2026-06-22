@@ -36,8 +36,14 @@ async function getModel(name: CollectionName) {
 /** Read a whole collection from MongoDB, falling back to the static dataset. */
 export async function fetchAll(name: CollectionName): Promise<Doc[]> {
   if (usingDB()) {
-    const model = await getModel(name);
-    if (model) return ((await model.find().lean()) as Doc[]).map(serialize);
+    try {
+      const model = await getModel(name);
+      if (model) return ((await model.find().lean()) as Doc[]).map(serialize);
+    } catch (err) {
+      // DB unreachable (e.g. at build time on a host that can't reach Atlas).
+      // Degrade to the static dataset instead of failing the whole build/page.
+      console.warn(`[api] fetchAll("${name}") fell back to dataset:`, err);
+    }
   }
   return dataset[name] as unknown as Doc[];
 }
@@ -49,10 +55,14 @@ export async function fetchOne(
   value: string
 ): Promise<Doc | null> {
   if (usingDB()) {
-    const model = await getModel(name);
-    if (model) {
-      const doc = (await model.findOne({ [field]: value }).lean()) as Doc | null;
-      return doc ? serialize(doc) : null;
+    try {
+      const model = await getModel(name);
+      if (model) {
+        const doc = (await model.findOne({ [field]: value }).lean()) as Doc | null;
+        return doc ? serialize(doc) : null;
+      }
+    } catch (err) {
+      console.warn(`[api] fetchOne("${name}", "${field}") fell back to dataset:`, err);
     }
   }
   return (
