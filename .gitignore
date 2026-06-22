@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated data export (npm run export:json) — source of truth is MongoDB / lib/dataset.ts
+/data/json/
